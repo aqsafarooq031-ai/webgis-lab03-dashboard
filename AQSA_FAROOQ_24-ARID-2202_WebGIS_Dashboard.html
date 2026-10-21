@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rawalpindi School Navigation Dashboard | Aqsa Farooq</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.css">
+<style>
+:root{--navy:#142b4a;--blue:#2463eb;--teal:#0f9f9a;--ink:#243247;--muted:#64748b;--panel:#fff;--bg:#edf2f8;--line:#dce5ef}
+*{box-sizing:border-box}html,body{margin:0;height:100%;font-family:Inter,"Segoe UI",Arial,sans-serif;color:var(--ink);background:var(--bg)}
+.topbar{height:78px;background:linear-gradient(110deg,#122743,#1d4774);color:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 26px;box-shadow:0 5px 18px #0b1f3b24}
+.brand{display:flex;align-items:center;gap:13px}.brand-icon{width:42px;height:42px;border-radius:13px;background:#ffffff1c;display:grid;place-items:center;font-size:23px}.brand h1{font-size:20px;letter-spacing:.1px;margin:0}.brand p{margin:4px 0 0;color:#c6d7eb;font-size:12px}.tag{border:1px solid #ffffff4d;padding:8px 12px;border-radius:30px;font-size:12px;color:#e4eefb}
+.layout{height:calc(100% - 78px);padding:16px;display:grid;grid-template-columns:255px minmax(300px,1fr) 250px;gap:15px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:16px;box-shadow:0 6px 20px #19375b0c;overflow:auto}
+.panel-inner{padding:18px}.eyebrow{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:1.5px;color:var(--teal);margin:0 0 7px}
+h2{font-size:17px;margin:0 0 7px;color:var(--navy)}.sub{font-size:12px;color:var(--muted);line-height:1.5;margin:0 0 18px}
+.school{width:100%;text-align:left;border:1px solid var(--line);border-radius:12px;padding:12px;background:#fff;margin:0 0 10px;cursor:pointer;display:flex;gap:10px;align-items:flex-start;color:var(--ink);transition:.15s}
+.school:hover,.school.active{border-color:#6c91f4;background:#f2f6ff}.school .num{width:29px;height:29px;flex:none;border-radius:9px;display:grid;place-items:center;background:#e9f1ff;color:var(--blue);font-weight:800;font-size:12px}
+.school strong{font-size:12px;display:block;line-height:1.4}.school small{display:block;color:var(--muted);font-size:10px;line-height:1.4;margin-top:4px}
+.primary,.secondary{width:100%;border:0;border-radius:10px;padding:12px 11px;font-weight:700;font-size:12px;cursor:pointer;margin-top:8px}.primary{background:var(--blue);color:white}.primary:hover{background:#194fd0}.secondary{background:#eaf2fb;color:#21476f}.hint{font-size:11px;line-height:1.5;color:var(--muted);margin-top:12px}
+.mapwrap{position:relative;min-width:0;overflow:hidden;border-radius:16px;border:1px solid var(--line);box-shadow:0 6px 20px #19375b0c;background:#e2eaf1}
+.maphead{position:absolute;z-index:500;left:14px;top:14px;background:#fff;padding:10px 14px;border-radius:12px;box-shadow:0 4px 15px #132a451c;pointer-events:none}.maphead strong{display:block;font-size:12px;color:var(--navy)}.maphead span{font-size:10px;color:var(--muted)}
+#map{height:100%;width:100%;min-height:450px;background:#e7edf1}
+.status{padding:13px;border-radius:12px;background:#f2f7ff;border:1px solid #dce8ff;margin-top:15px;font-size:12px;line-height:1.5}.status b{color:var(--navy)}.metric{display:flex;align-items:center;justify-content:space-between;padding:11px 0;border-bottom:1px solid #edf1f6;font-size:12px}.metric:last-child{border:0}.metric span{color:var(--muted)}.metric strong{color:var(--navy);text-align:right;max-width:140px}
+.profile{padding:13px;background:#f6f9fc;border-radius:12px;border:1px solid var(--line);margin-bottom:15px}.profile label{display:block;font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:5px}.profile strong{font-size:13px;color:var(--navy)}.chip{display:inline-block;font-size:10px;color:#087f78;background:#ddf7f3;border-radius:20px;padding:5px 8px;margin-top:10px;font-weight:700}
+.legend{display:flex;gap:12px;flex-wrap:wrap;font-size:10px;color:var(--muted);margin-top:14px}.dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:5px;background:var(--blue)}.dot.teal{background:var(--teal)}
+.leaflet-routing-container{max-height:180px;overflow:auto;font-size:11px}
+@media(max-width:950px){.layout{height:auto;min-height:calc(100% - 78px);grid-template-columns:1fr 1fr}.mapwrap{grid-column:1/-1;grid-row:1;height:55vh}.panel{max-height:none}.topbar{padding:0 16px}.tag{display:none}}
+@media(max-width:600px){.layout{display:flex;flex-direction:column}.mapwrap{height:50vh;min-height:350px}.topbar{height:auto;min-height:78px}.brand h1{font-size:16px}.layout{height:auto}.panel{overflow:visible}}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="brand"><div class="brand-icon">⌖</div><div><h1>School Navigation Dashboard</h1><p>WebGIS Development · Lab 03 · Rawalpindi, Pakistan</p></div></div>
+  <div class="tag">INTERACTIVE WEBGIS</div>
+</header>
+<main class="layout">
+  <aside class="panel"><div class="panel-inner">
+    <p class="eyebrow">Explore locations</p><h2>Selected Schools</h2><p class="sub">Choose a school to focus the map, view its marker, and calculate a road route.</p>
+    <button class="school active" id="school0" onclick="selectSchool(0)"><span class="num">01</span><span><strong>Saint John's High School</strong><small>127 Murree Road, Saddar, Rawalpindi</small></span></button>
+    <button class="school" id="school1" onclick="selectSchool(1)"><span class="num">02</span><span><strong>Government Denny's Higher Secondary School</strong><small>Kashmir Road, Saddar, Rawalpindi</small></span></button>
+    <button class="primary" onclick="useMyLocation()">◎ &nbsp; Use My Current Location</button>
+    <button class="secondary" onclick="findRoute()">↗ &nbsp; Find Route to Selected School</button>
+    <div class="status" id="status"><b>Ready to navigate</b><br>Select a school and allow location access to calculate a route.</div>
+    <p class="hint">Location access requires browser permission. If geolocation is unavailable, the dashboard uses Saddar as a demonstration starting point.</p>
+  </div></aside>
+  <section class="mapwrap"><div class="maphead"><strong>Rawalpindi · Saddar</strong><span>School locations & road navigation</span></div><div id="map"></div></section>
+  <aside class="panel"><div class="panel-inner">
+    <p class="eyebrow">Student profile</p><h2>Submission Details</h2>
+    <div class="profile"><label>Student name</label><strong>AQSA FAROOQ</strong><br><label style="margin-top:12px">ARID number</label><strong>24-ARID-2202</strong><br><span class="chip">LAB 03 · WEBGIS</span></div>
+    <div class="metric"><span>Assigned city</span><strong>Rawalpindi</strong></div>
+    <div class="metric"><span>Province</span><strong>Punjab, Pakistan</strong></div>
+    <div class="metric"><span>Selected school</span><strong id="selectedName">Saint John's High School</strong></div>
+    <div class="metric"><span>Route distance</span><strong id="distance">—</strong></div>
+    <div class="metric"><span>Estimated drive</span><strong id="duration">—</strong></div>
+    <div class="legend"><span><i class="dot"></i>School marker</span><span><i class="dot teal"></i>Start point</span></div>
+    <p class="hint">Distance and duration are returned by the routing service. Travel time is an estimate, not live traffic information.</p>
+  </div></aside>
+</main>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js"></script>
+<script>
+const schools=[
+ {name:"Saint John's High School",address:"127 Murree Road, Saddar, Rawalpindi",query:"Saint John's High School, 127 Murree Road, Saddar, Rawalpindi, Pakistan",lat:33.5977,lng:73.0532},
+ {name:"Government Denny's Higher Secondary School",address:"Kashmir Road, Saddar, Rawalpindi",query:"Government Denny's Higher Secondary School, Kashmir Road, Saddar, Rawalpindi, Pakistan",lat:33.5964,lng:73.0556}
+];
+let selected=0, startPoint=L.latLng(33.5942,73.0470), routeControl=null, routeLayers=[];
+const map=L.map('map',{zoomControl:true}).setView([33.598,73.054],14);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'&copy; OpenStreetMap contributors'}).addTo(map);
+const startMarker=L.circleMarker(startPoint,{radius:8,color:'#fff',weight:3,fillColor:'#0f9f9a',fillOpacity:1}).addTo(map).bindPopup('Demonstration starting point · Saddar, Rawalpindi');
+const markers=schools.map((s,i)=>L.marker([s.lat,s.lng]).addTo(map).bindPopup('<b>'+s.name+'</b><br>'+s.address));
+function setStatus(title,body){document.getElementById('status').innerHTML='<b>'+title+'</b><br>'+body}
+function selectSchool(i){selected=i;document.querySelectorAll('.school').forEach((b,j)=>b.classList.toggle('active',i===j));document.getElementById('selectedName').textContent=schools[i].name;map.setView([schools[i].lat,schools[i].lng],15);markers[i].openPopup();setStatus('School selected',schools[i].name+' is active. Choose your location and find a route.')}
+function useMyLocation(){if(!navigator.geolocation){setStatus('Location unavailable','Using the Saddar demonstration start point.');return}
+setStatus('Requesting location','Please allow location access in your browser.');navigator.geolocation.getCurrentPosition(p=>{startPoint=L.latLng(p.coords.latitude,p.coords.longitude);startMarker.setLatLng(startPoint).bindPopup('Your current location').openPopup();map.setView(startPoint,14);setStatus('Location acquired','Your current position is ready for routing.');},()=>setStatus('Location not granted','Using the Saddar demonstration start point instead.'),{enableHighAccuracy:true,timeout:10000});}
+function findRoute(){const dest=schools[selected];if(routeControl){map.removeControl(routeControl);routeControl=null}
+document.getElementById('distance').textContent='Calculating…';document.getElementById('duration').textContent='Calculating…';setStatus('Calculating route','Contacting the public routing service…');
+routeControl=L.Routing.control({waypoints:[startPoint,L.latLng(dest.lat,dest.lng)],routeWhileDragging:false,show:false,addWaypoints:false,draggableWaypoints:false,createMarker:()=>null,lineOptions:{styles:[{color:'#2463eb',opacity:.9,weight:6}]},router:L.Routing.osrmv1({serviceUrl:'https://router.project-osrm.org/route/v1'}),fitSelectedRoutes:true}).addTo(map);
+routeControl.on('routesfound',e=>{const r=e.routes[0],km=(r.summary.totalDistance/1000).toFixed(2),mins=r.summary.totalTime/60;document.getElementById('distance').textContent=km+' km';document.getElementById('duration').textContent=mins<60?Math.round(mins)+' min':Math.floor(mins/60)+' h '+Math.round(mins%60)+' min';setStatus('Route ready',km+' km · estimated '+document.getElementById('duration').textContent+' to '+dest.name+'.')});
+routeControl.on('routingerror',()=>{document.getElementById('distance').textContent='Unavailable';document.getElementById('duration').textContent='Unavailable';setStatus('Routing service unavailable','Please check your internet connection and try again.')});}
+</script>
+</body>
+</html>
